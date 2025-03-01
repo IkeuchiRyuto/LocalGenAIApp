@@ -51,3 +51,4 @@ Carthage/Build/
 
 
 *.xcodeproj/project.pbxproj
+*.xcconfig
