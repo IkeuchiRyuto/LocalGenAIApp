@@ -20,7 +20,7 @@ class SLMEvaluator {
     var stat = ""
 
     // モデルを設定
-    let modelConfiguration = ModelRegistry.phi4_mini_8bit
+    let modelConfiguration = ModelRegistry.phi4_mini_4bit
 
     /// parameters controlling the output
     let generateParameters = GenerateParameters(temperature: 0)
@@ -77,18 +77,15 @@ class SLMEvaluator {
         do {
             let modelContainer = try await load()
             let systemPrompt = """
-            あなたは機械学習に精通したAIスペシャリストです。
-            """
-            
-            let userPrompt = """
-            ファインチューニングと蒸留の違いを簡潔に説明して。
+            あなたは、ユーザーの多岐にわたる質問やリクエストに対して、できるだけ簡潔に回答するアシスタントです。
+            無駄に詳細を述べず、必要最小限の情報だけを提供してください。
+            もし答えが分からない場合は、正直に『わかりません』と述べてください。
             """
 
             // each time you generate you will get something new
             MLXRandom.seed(UInt64(Date.timeIntervalSinceReferenceDate * 1000))
             let result = try await modelContainer.perform { context in
-                let input = try await context.processor.prepare(input: .init(messages:  [["role": "system", "content": systemPrompt], ["role": "user", "content": userPrompt]]))
-                print("input")
+                let input = try await context.processor.prepare(input: .init(messages:  [["role": "system", "content": systemPrompt], ["role": "user", "content": prompt]]))
                 return try mlxGenerate(
                     input: input, parameters: generateParameters, context: context
                 ) { tokens in
