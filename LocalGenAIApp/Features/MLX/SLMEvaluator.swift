@@ -20,7 +20,7 @@ class SLMEvaluator {
     var stat = ""
 
     // モデルを設定
-    let modelConfiguration = ModelRegistry.phi4_mini_4bit
+    let modelConfiguration = ModelRegistry.phi4_mini_8bit
 
     /// parameters controlling the output
     let generateParameters = GenerateParameters(temperature: 0)

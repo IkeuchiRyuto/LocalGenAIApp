@@ -66,7 +66,7 @@ extension ModelFactory {
     /// ``loadContainer(hub:configuration:progressHandler:)`` for a method that
     /// returns a ``MLXModelContainer``.
     public func load(
-        hub: HubApi = HubApi(hfToken: Bundle.main.object(forInfoDictionaryKey: "HF_TOKEN") as? String), configuration: MLXModelConfiguration,
+        hub: HubApi = HubApi(hfToken: Bundle.main.object(forInfoDictionaryKey: "GLOBAL_HF_TOKEN") as? String), configuration: MLXModelConfiguration,
         progressHandler: @Sendable @escaping (Progress) -> Void = { _ in }
     ) async throws -> ModelContext {
         try await _load(hub: hub, configuration: configuration, progressHandler: progressHandler)
@@ -74,7 +74,7 @@ extension ModelFactory {
 
     /// Load a model identified by a ``MLXModelConfiguration`` and produce a ``MLXModelContainer``.
     public func loadContainer(
-        hub: HubApi = HubApi(hfToken: Bundle.main.object(forInfoDictionaryKey: "HF_TOKEN") as? String), configuration: MLXModelConfiguration,
+        hub: HubApi = HubApi(hfToken: Bundle.main.object(forInfoDictionaryKey: "GLOBAL_HF_TOKEN") as? String), configuration: MLXModelConfiguration,
         progressHandler: @Sendable @escaping (Progress) -> Void = { _ in }
     ) async throws -> MLXModelContainer {
         try await _loadContainer(
@@ -82,7 +82,7 @@ extension ModelFactory {
     }
 
     public func _loadContainer(
-        hub: HubApi = HubApi(hfToken: Bundle.main.object(forInfoDictionaryKey: "HF_TOKEN") as? String), configuration: MLXModelConfiguration,
+        hub: HubApi = HubApi(hfToken: Bundle.main.object(forInfoDictionaryKey: "GLOBAL_HF_TOKEN") as? String), configuration: MLXModelConfiguration,
         progressHandler: @Sendable @escaping (Progress) -> Void = { _ in }
     ) async throws -> MLXModelContainer {
         let context = try await _load(

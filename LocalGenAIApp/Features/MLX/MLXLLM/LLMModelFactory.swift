@@ -83,6 +83,12 @@ public class ModelRegistry: @unchecked Sendable {
         extraEOSTokens: ["<|end|>"]
     )
     
+    static public let phi35_mini_8bit_lora = MLXModelConfiguration(
+        id: "kokitakeishi/phi-3.5-lora-q8-mlx",
+        defaultPrompt: "Microsoftが出しているサービス一覧",
+        extraEOSTokens: ["<|end|>"]
+    )
+    
     static public let phi4_mini_4bit = MLXModelConfiguration(
         id: "lokinfey/Phi-4-mini-mlx-int4",
         defaultPrompt: "レポートを作成してください。",
@@ -112,6 +118,7 @@ public class ModelRegistry: @unchecked Sendable {
             openelm270m4bit,
             phi35_mini_4bit,
             phi35_mini_8bit,
+            phi35_mini_8bit_lora,
             phi4_2bit,
             phi4_4bit,
             phi4_mini_4bit,
