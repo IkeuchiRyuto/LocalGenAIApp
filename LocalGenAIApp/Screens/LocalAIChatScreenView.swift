@@ -27,30 +27,6 @@ struct LocalAIChatScreenView: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .leading) {
-//                VStack {
-//                    HStack {
-//                        Text(slm.modelInfo).textFieldStyle(.roundedBorder)
-//                        Spacer()
-//                        Text(slm.stat)
-//                    }
-//                    HStack {
-//                        Spacer()
-//                        if slm.running {
-//                            ProgressView()
-//                                .frame(maxHeight: 20)
-//                            Spacer()
-//                        }
-//                        Picker("", selection: $selectedDisplayStyle) {
-//                            ForEach(displayStyle.allCases, id: \.self) { option in
-//                                Text(option.rawValue.capitalized)
-//                                    .tag(option)
-//                            }
-//                            
-//                        }
-//                        .pickerStyle(.segmented).frame(maxWidth: 150)
-//                    }
-//                }
-                
                 ScrollView(.vertical) {
                     ScrollViewReader { sp in
                         Group {
@@ -105,20 +81,10 @@ struct LocalAIChatScreenView: View {
                 }.padding(.leading, 40).padding(.trailing, 32).padding(.vertical, 28).background(Color.white).cornerRadius(40).overlay(RoundedRectangle(cornerRadius: 40).stroke(.white))
                 
             }
-            .padding(.horizontal, 60).toolbar {
-//                ToolbarItem {
-//                    Label("Memory Usage: OK", systemImage: "info.circle.fill").labelStyle(.titleAndIcon).padding(.horizontal)
-//                        .help(
-//                            Text(
-//                            """
-//                            Active Memory:ok /\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))
-//                            Cache Memory: ok /\(GPU.cacheLimit.formatted(.byteCount(style: .memory)))
-//                            Peak Memory: ok
-//                            """
-//                            )
-//                        )
-//                }
-            }.background(.BACKGROUND)
+            .padding(.horizontal, 60)
+            .background(.BACKGROUND)
+            .navigationBarTitle("\(slm.modelInfo) GPU：\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))")
+            .navigationBarTitleDisplayMode(.inline)
         }.navigationViewStyle(.stack)
     }
     
