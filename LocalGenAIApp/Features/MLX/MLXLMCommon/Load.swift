@@ -19,39 +19,39 @@ import Tokenizers
 ///   - progressHandler: callback for progress
 /// - Returns: URL for the directory containing downloaded files
 public func downloadModel(
-    hub: HubApi, configuration: MLXModelConfiguration,
-    progressHandler: @Sendable @escaping (Progress) -> Void
+  hub: HubApi, configuration: MLXModelConfiguration,
+  progressHandler: @Sendable @escaping (Progress) -> Void
 ) async throws -> URL {
-    do {
-        switch configuration.id {
-        case .id(let id):
-            // download the model weights
-            let repo = Hub.Repo(id: id)
-            let modelFiles = ["*.safetensors", "*.json"]
-            
-            let res =  try await hub.snapshot(
-                from: repo, matching: modelFiles, progressHandler: progressHandler)
-            return res
+  do {
+    switch configuration.id {
+    case .id(let id):
+      // download the model weights
+      let repo = Hub.Repo(id: id)
+      let modelFiles = ["*.safetensors", "*.json"]
 
-        case .directory(let directory):
-            return directory
-        }
+      let res = try await hub.snapshot(
+        from: repo, matching: modelFiles, progressHandler: progressHandler)
+      return res
 
-    } catch Hub.HubClientError.authorizationRequired {
-        // an authorizationRequired means (typically) that the named repo doesn't exist on
-        // on the server so retry with local only configuration
-        return configuration.modelDirectory(hub: hub)
-
-    } catch {
-        let nserror = error as NSError
-        if nserror.domain == NSURLErrorDomain && nserror.code == NSURLErrorNotConnectedToInternet {
-            // Error Domain=NSURLErrorDomain Code=-1009 "The Internet connection appears to be offline."
-            // fall back to the local directory
-            return configuration.modelDirectory(hub: hub)
-        } else {
-            throw error
-        }
+    case .directory(let directory):
+      return directory
     }
+
+  } catch Hub.HubClientError.authorizationRequired {
+    // an authorizationRequired means (typically) that the named repo doesn't exist on
+    // on the server so retry with local only configuration
+    return configuration.modelDirectory(hub: hub)
+
+  } catch {
+    let nserror = error as NSError
+    if nserror.domain == NSURLErrorDomain && nserror.code == NSURLErrorNotConnectedToInternet {
+      // Error Domain=NSURLErrorDomain Code=-1009 "The Internet connection appears to be offline."
+      // fall back to the local directory
+      return configuration.modelDirectory(hub: hub)
+    } else {
+      throw error
+    }
+  }
 }
 
 /// Load model weights.
@@ -61,35 +61,35 @@ public func downloadModel(
 /// calls ``LanguageModel/sanitize(weights:)``, applies optional quantization, and
 /// updates the model with the weights.
 public func loadWeights(
-    modelDirectory: URL, model: LanguageModel, quantization: BaseConfiguration.Quantization? = nil
+  modelDirectory: URL, model: LanguageModel, quantization: BaseConfiguration.Quantization? = nil
 ) throws {
-    // load the weights
-    var weights = [String: MLXArray]()
-    let enumerator = FileManager.default.enumerator(
-        at: modelDirectory, includingPropertiesForKeys: nil)!
-    for case let url as URL in enumerator {
-        if url.pathExtension == "safetensors" {
-            let w = try loadArrays(url: url)
-            for (key, value) in w {
-                weights[key] = value
-            }
-        }
+  // load the weights
+  var weights = [String: MLXArray]()
+  let enumerator = FileManager.default.enumerator(
+    at: modelDirectory, includingPropertiesForKeys: nil)!
+  for case let url as URL in enumerator {
+    if url.pathExtension == "safetensors" {
+      let w = try loadArrays(url: url)
+      for (key, value) in w {
+        weights[key] = value
+      }
     }
+  }
 
-    // per-model cleanup
-    weights = model.sanitize(weights: weights)
+  // per-model cleanup
+  weights = model.sanitize(weights: weights)
 
-    // quantize if needed
-    if let quantization {
-        quantize(model: model, groupSize: quantization.groupSize, bits: quantization.bits) {
-            path, module in
-            weights["\(path).scales"] != nil
-        }
+  // quantize if needed
+  if let quantization {
+    quantize(model: model, groupSize: quantization.groupSize, bits: quantization.bits) {
+      path, module in
+      weights["\(path).scales"] != nil
     }
+  }
 
-    // apply the loaded weights
-    let parameters = ModuleParameters.unflattened(weights)
-    try model.update(parameters: parameters, verify: [.all])
+  // apply the loaded weights
+  let parameters = ModuleParameters.unflattened(weights)
+  try model.update(parameters: parameters, verify: [.all])
 
-    eval(model)
+  eval(model)
 }
