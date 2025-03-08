@@ -11,20 +11,18 @@ import MLXRandom
 import Metal
 import Tokenizers
 import MarkdownUI
+import Foundation
 
 struct LocalAIChatScreenView: View {
     @Environment(\.dismiss) var dismiss
-    
+        
     @State var slm = SLMEvaluator()
     @State var userPrompt = ""
-    @State private var messages: [ChatMessage] = []
-    
-    enum displayStyle: String, CaseIterable, Identifiable {
-        case plain, markdown
-        var id: Self { self }
-    }
-    
-    @State private var selectedDisplayStyle = displayStyle.markdown
+    @State private var messages: [ChatMessage] = [
+        ChatMessage(content: "こんにちは", role: "user"),
+        ChatMessage(content: "こんにちは!!何を答えましょうか？", role: "ai")
+    ]
+
     
     var body: some View {
         NavigationView {
@@ -56,9 +54,11 @@ struct LocalAIChatScreenView: View {
                 ScrollView(.vertical) {
                     ScrollViewReader { sp in
                         Group {
-                            List(messages) { message in
-                                ChatBubble(message: message)
-                            }
+                            ForEach(messages) { message in
+                                HStack {
+                                    ChatBubble(message: message)
+                                }
+                           }
                             Markdown(slm.output)
                             .markdownBlockStyle(\.heading1) { configuration in
                                    configuration.label
@@ -105,7 +105,7 @@ struct LocalAIChatScreenView: View {
                 }.padding(.leading, 40).padding(.trailing, 32).padding(.vertical, 28).background(Color.white).cornerRadius(40).overlay(RoundedRectangle(cornerRadius: 40).stroke(.white))
                 
             }
-            .padding().toolbar {
+            .padding(.horizontal, 60).toolbar {
 //                ToolbarItem {
 //                    Label("Memory Usage: OK", systemImage: "info.circle.fill").labelStyle(.titleAndIcon).padding(.horizontal)
 //                        .help(
@@ -123,9 +123,11 @@ struct LocalAIChatScreenView: View {
     }
     
     private func generate() {
-        Task {
-            await slm.generate(prompt: userPrompt)
-        }
+//        Task {
+            messages.append(ChatMessage(content: "こんにちは", role: "user"))
+            userPrompt = ""
+//            await slm.generate(prompt: "こんにちは")
+//        }
     }
 }
 
@@ -143,33 +145,43 @@ struct ChatBubble: View {
     var message: ChatMessage
 
     var body: some View {
-        Group {
-            if message.role == "user" {
-                HStack {
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(message.content)
-                            .padding(12)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                        Text("Sent: \(getMessageSentTime())")
-                            .font(.system(size: 8, weight: .medium))
-                    }
+        if message.role == "user" {
+            HStack {
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(message.content)
+                        .padding(16)
+                        .background(UnevenRoundedRectangle(
+                            topLeadingRadius: 16,
+                            bottomLeadingRadius: 16,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 16,
+                            style: .continuous
+                        ).foregroundStyle(.white))
+                        .foregroundColor(.blue)
+                        .fontWeight(.bold)
+                    Text("Sent: \(getMessageSentTime())")
+                        .font(.system(size: 8, weight: .medium))
                 }
-            } else {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("John")
-                            .font(.system(size: 12, weight: .medium))
-                        Text(message.content)
-                            .padding(12)
-                            .background(Color.gray)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    Spacer()
+            }
+        } else {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Phi-4-mini")
+                        .font(.system(size: 12, weight: .medium))
+                        .padding(.bottom, 4)
+                    Text(message.content)
+                        .padding(16)
+                        .background(UnevenRoundedRectangle(
+                            topLeadingRadius: 16,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 16,
+                            topTrailingRadius: 16,
+                            style: .continuous
+                        ).foregroundStyle(.white))
+                        .foregroundColor(.black)
                 }
+                Spacer()
             }
         }
     }
