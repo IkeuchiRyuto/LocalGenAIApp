@@ -25,7 +25,7 @@ struct LocalGenAIAppApp: App {
 
   var body: some Scene {
     WindowGroup {
-      LocalAIChatScreenView()
+      LocalAIChatScreenView().environment(DeviceStat())
     }
     .modelContainer(sharedModelContainer)
   }

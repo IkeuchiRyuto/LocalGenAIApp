@@ -15,12 +15,13 @@ import Tokenizers
 
 struct LocalAIChatScreenView: View {
   @Environment(\.dismiss) var dismiss
+  @Environment(DeviceStat.self) private var deviceStat
 
   @State var slm = SLMEvaluator()
   @State var userPrompt = ""
   @State private var messages: [ChatMessage] = [
     ChatMessage(content: "こんにちは", role: "user"),
-    ChatMessage(content: "こんにちは!!何を答えましょうか？", role: "ai"),
+    ChatMessage(content: "こんにちは!Phi-4-miniです。", role: "ai"),
   ]
 
   var body: some View {
@@ -34,37 +35,13 @@ struct LocalAIChatScreenView: View {
                   ChatBubble(message: message)
                 }
               }
-              Markdown(slm.output)
-                .markdownBlockStyle(\.heading1) { configuration in
-                  configuration.label
-                    .padding(8)
-                    .markdownMargin(top: 0, bottom: 32)
-                    .markdownTextStyle {
-                      FontSize(24)
-                      FontWeight(.bold)
-                    }
-                }
-                .markdownBlockStyle(\.heading2) { configuration in
-                  configuration.label
-                    .padding(8)
-                    .markdownMargin(top: 0, bottom: 16)
-                    .markdownTextStyle {
-                      FontSize(16)
-                      FontWeight(.bold)
-                    }
-                }
-                .markdownBlockStyle(\.heading3) { configuration in
-                  configuration.label
-                    .markdownMargin(top: 16, bottom: 8)
-                    .markdownTextStyle {
-                      FontSize(18)
-                      FontWeight(.bold)
-                    }
-                }
-                .textSelection(.enabled)
-                .frame(width: UIScreen.main.bounds.width - 80, alignment: .leading)
             }
-            .onChange(of: slm.output) { _, _ in
+            .onChange(of: slm.output) { newOutput in
+              if slm.running, let lastIndex = messages.indices.last,
+                messages[lastIndex].role == "ai"
+              {
+                messages[lastIndex].content = newOutput
+              }
               sp.scrollTo("bottom")
             }
 
@@ -73,31 +50,41 @@ struct LocalAIChatScreenView: View {
         }
 
         HStack {
-          TextField("メッセージを入力", text: $userPrompt).font(.title3).bold().onSubmit(generate).disabled(
-            slm.running)
+          TextField("メッセージを入力", text: $userPrompt).font(.title3)
+            .bold().onSubmit(generate).disabled(
+              slm.running)
           Button(action: generate) {
-            Image(systemName: "mic.fill").foregroundStyle(.blue).frame(width: 24, height: 24)
+            Image(systemName: "mic.fill").foregroundStyle(.blue)
+              .frame(width: 24, height: 24)
           }.disabled(slm.running)
-        }.padding(.leading, 40).padding(.trailing, 32).padding(.vertical, 28).background(
+        }.padding(.leading, 40).padding(.trailing, 32).padding(
+          .vertical, 28
+        ).background(
           Color.white
-        ).cornerRadius(40).overlay(RoundedRectangle(cornerRadius: 40).stroke(.white))
+        ).cornerRadius(40).overlay(
+          RoundedRectangle(cornerRadius: 40).stroke(.white))
 
       }
       .padding(.horizontal, 60)
       .background(.BACKGROUND)
       .navigationBarTitle(
-        "\(slm.modelInfo) GPU：\(GPU.memoryLimit.formatted(.byteCount(style: .memory)))"
+        "Active Memory: \(deviceStat.gpuUsage.activeMemory.formatted(.byteCount(style: .memory))) / \(GPU.memoryLimit.formatted(.byteCount(style: .memory)))"
       )
       .navigationBarTitleDisplayMode(.inline)
-    }.navigationViewStyle(.stack)
+    }
+    .navigationViewStyle(.stack)
+    .task {
+      _ = try? await slm.load()
+    }
   }
 
   private func generate() {
-    //        Task {
-    messages.append(ChatMessage(content: "こんにちは", role: "user"))
-    userPrompt = ""
-    //            await slm.generate(prompt: "こんにちは")
-    //        }
+    Task {
+      messages.append(ChatMessage(content: userPrompt, role: "user"))
+      messages.append(ChatMessage(content: "", role: "ai"))
+      await slm.generate(prompt: userPrompt)
+      userPrompt = ""
+    }
   }
 }
 
@@ -142,18 +129,48 @@ struct ChatBubble: View {
           Text("Phi-4-mini")
             .font(.system(size: 12, weight: .medium))
             .padding(.bottom, 4)
-          Text(message.content)
-            .padding(16)
-            .background(
-              UnevenRoundedRectangle(
-                topLeadingRadius: 16,
-                bottomLeadingRadius: 0,
-                bottomTrailingRadius: 16,
-                topTrailingRadius: 16,
-                style: .continuous
-              ).foregroundStyle(.white)
-            )
-            .foregroundColor(.black)
+          HStack {
+            Image("Phi4MiniIcon").resizable().scaledToFit().frame(width: 50, height: 50).clipShape(
+              Circle())
+            Markdown(message.content)
+              .markdownBlockStyle(\.heading1) { configuration in
+                configuration.label
+                  .padding(8)
+                  .markdownMargin(top: 0, bottom: 32)
+                  .markdownTextStyle {
+                    FontSize(24)
+                    FontWeight(.bold)
+                  }
+              }
+              .markdownBlockStyle(\.heading2) { configuration in
+                configuration.label
+                  .padding(8)
+                  .markdownMargin(top: 0, bottom: 16)
+                  .markdownTextStyle {
+                    FontSize(16)
+                    FontWeight(.bold)
+                  }
+              }
+              .markdownBlockStyle(\.heading3) { configuration in
+                configuration.label
+                  .markdownMargin(top: 16, bottom: 8)
+                  .markdownTextStyle {
+                    FontSize(18)
+                    FontWeight(.bold)
+                  }
+              }
+              .textSelection(.enabled)
+              .padding(16)
+              .background(
+                UnevenRoundedRectangle(
+                  topLeadingRadius: 16,
+                  bottomLeadingRadius: 0,
+                  bottomTrailingRadius: 16,
+                  topTrailingRadius: 16,
+                  style: .continuous
+                ).foregroundStyle(.white)
+              )
+          }
         }
         Spacer()
       }

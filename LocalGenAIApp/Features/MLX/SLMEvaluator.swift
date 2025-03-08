@@ -51,7 +51,7 @@ class SLMEvaluator {
         [modelConfiguration] progress in
         Task { @MainActor in
           self.modelInfo =
-            "Downloading \(modelConfiguration.name): \(Int(progress.fractionCompleted * 100))%"
+            "Downloading now...: \(Int(progress.fractionCompleted * 100))%"
         }
       }
       let numParams = await modelContainer.perform { context in
@@ -59,7 +59,7 @@ class SLMEvaluator {
       }
 
       self.modelInfo =
-        "Loaded \(modelConfiguration.id).  Weights: \(numParams / (1024*1024))M"
+        "Standby OK!"
       loadState = .loaded(modelContainer)
       return modelContainer
 
