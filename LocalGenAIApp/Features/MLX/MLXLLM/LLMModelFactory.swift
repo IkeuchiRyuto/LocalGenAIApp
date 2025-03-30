@@ -84,7 +84,7 @@ public class ModelRegistry: @unchecked Sendable {
   )
 
   static public let phi4_mini_8bit = MLXModelConfiguration(
-    id: "kokitakeishi/Phi-4-mini-mlx-8bit",
+    id: "mlx-community/Phi-4-mini-instruct-8bit",
     defaultPrompt: "Microsoftが出しているサービス一覧",
     extraEOSTokens: ["<|end|>"]
   )
